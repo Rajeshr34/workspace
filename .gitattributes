@@ -1,0 +1,4 @@
+# Set default behavior to automatically normalize line endings.
+* text=auto eol=lf
+# git rm --cached -r .  # Remove every file from git's index.
+# git reset --hard      # Rewrite git's index to pick up all the new line endings.
