@@ -3,15 +3,23 @@ npx lerna init
 git init
 yarn
 #add ("npmClient": "yarn",) in lerna.json
+#append package.json
+------------------
+"lint-staged": {
+  "*.{tsx,ts,js,css,md}": [
+	"prettier --write"
+  ]
+}
+------------------
 ```
 
 ```
 create .gitignore add below
 --------------------------------
 # Dependency directories
-# Dependency directories
 node_modules/
 lerna-debug.log
+yarn-error.log
 ```
 
 ```
@@ -48,15 +56,26 @@ create .yarnrc add below
 
 ```
 yarn add husky -d
+npm set-script prepare "husky install"
 yarn add lint-staged -d
 yarn add prettier -d
 yarn add @commitlint/config-conventional @commitlint/cli -d
 echo "module.exports = {extends: ['@commitlint/config-conventional']}" > commitlint.config.js
 
 npx husky install
-npx husky add .husky/pre-commit "npm test"
+npx husky add .husky/pre-commit "yarn lint-staged && npx lerna run --concurrency 1 --stream precommit --since HEAD --exclude-dependents"
 npx husky add .husky/commit-msg 'npx commitlint --edit $1'
 
 
 npm install tsdx -g
+```
+
+```
+create .commitlintrc.json add below
+--------------------------------
+{
+  "extends": [
+	"@commitlint/config-conventional"
+  ]
+}
 ```
