@@ -55,7 +55,7 @@ echo "module.exports = {extends: ['@commitlint/config-conventional']}" > commitl
 
 npx husky install
 npx husky add .husky/pre-commit "npm test"
-npx husky add .husky/commit-msg 'npx --no-install commitlint --edit "$1"'
+npx husky add .husky/commit-msg 'npx commitlint --edit $1'
 
 
 npm install tsdx -g
