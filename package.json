@@ -1,22 +1,28 @@
 {
-  "name": "rootx",
-  "private": true,
-  "scripts": {
-	"prepare": "husky install",
-	"test": "lerna run test",
-	"lint": "lerna run lint"
-  },
-  "devDependencies": {
-	"@commitlint/cli": "^13.2.1",
-	"@commitlint/config-conventional": "^13.2.0",
-	"husky": "^7.0.4",
-	"lerna": "^4.0.0",
-	"lint-staged": "^11.2.5",
-	"prettier": "^2.4.1"
-  },
-  "lint-staged": {
-	"*.{tsx,ts,js,css,md}": [
-	  "prettier --write"
-	]
-  }
+	"name": "root",
+	"private": true,
+	"scripts": {
+		"prepare": "husky install",
+		"test": "lerna run test",
+		"lint": "lerna run lint"
+	},
+	"devDependencies": {
+		"@commitlint/cli": "^13.2.1",
+		"@commitlint/config-conventional": "^13.2.0",
+		"cz-conventional-changelog": "3.3.0",
+		"husky": "^7.0.4",
+		"lerna": "^4.0.0",
+		"lint-staged": "^11.2.5",
+		"prettier": "^2.4.1"
+	},
+	"lint-staged": {
+		"*.{tsx,ts,js,css,md}": [
+			"prettier --write"
+		]
+	},
+	"config": {
+		"commitizen": {
+			"path": "./node_modules/cz-conventional-changelog"
+		}
+	}
 }

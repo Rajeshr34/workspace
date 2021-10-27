@@ -1,4 +1,5 @@
 ```
+npm install commitizen -g
 npx lerna init
 git init
 yarn
