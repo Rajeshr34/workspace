@@ -1,5 +1,5 @@
 {
-	"name": "rootx",
+	"name": "root",
 	"private": true,
 	"scripts": {
 		"prepare": "husky install",
