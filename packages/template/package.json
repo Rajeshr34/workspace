@@ -1,0 +1,13 @@
+{
+  "name": "template",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Rajesh",
+  "license": "MIT",
+  "scripts": {
+    "build": "ts-node ./build.ts --env:production --format:cjs --sorucemap --target:node"
+  },
+  "dependencies": {
+	"ts-node": "^10.4.0"
+  }
+}
