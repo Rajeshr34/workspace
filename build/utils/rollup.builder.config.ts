@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import * as fs from "fs";
+import * as path from "path";
 import { RollupArgsInterface } from "../interfaces/project.args.interface";
 import NodeArgs from "./node.args";
 import { ApplicationPackageInterface } from "../interfaces/application.package.interface";
@@ -30,11 +30,11 @@ export default class RollupBuilderConfig {
 	}
 
 	load() {
-		/*this.nodeArgs.load().setDefaults({
-	  format: "cjs",
-	  env: "production",
-	  target: "browser",
-	});*/
+		this.nodeArgs.load().setDefaults({
+			format: "esm",
+			env: "production",
+			target: "browser",
+		});
 	}
 
 	getDist() {
@@ -150,16 +150,11 @@ export default class RollupBuilderConfig {
 					],
 				}),
 				babelPluginForESMBundle({
-					presets: [["@babel/preset-env", { modules: false, loose: true, targets: opts.target }]],
-					env: {
-						test: {
-							presets: [["@babel/preset-env"]],
-						},
-					},
+					presets: [["@babel/preset-env"]],
 					exclude: "node_modules/**",
 					extensions: [...DEFAULT_BABEL_EXTENSIONS, "ts", "tsx"],
 					babelHelpers: "bundled",
-					plugins: rollupBabelPlugins(opts),
+					// plugins: rollupBabelPlugins(opts),
 				}),
 				opts.env !== undefined &&
 					replace({
