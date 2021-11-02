@@ -13,9 +13,12 @@ export default class RollupBuilder {
 	load(options: RollupOptions) {
 		new EslintBuilder(this.configService.applicationPath, this.configService.nodeArgs).load();
 		const configObject = this.configService.getConfig(options);
-		rollup(configObject).then((r) => {
-			console.log(r);
-		});
-		console.log(configObject);
+		rollup(configObject)
+			.then((r) => {
+				console.log(r);
+			})
+			.then((error) => {
+				console.log(error);
+			});
 	}
 }

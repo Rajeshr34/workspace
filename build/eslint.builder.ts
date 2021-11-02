@@ -10,8 +10,5 @@ export default class EslintBuilder {
 		this.nodeArgs = nodeArgs;
 	}
 
-	load() {
-		console.log(this.applicationPath);
-		console.log(this.nodeArgs);
-	}
+	load() {}
 }

@@ -9,7 +9,6 @@ export default class NodeArgs<T> {
 	load() {
 		this.argv.forEach((item) => {
 			this.splitArg(item);
-			console.log(item);
 		});
 		return this;
 	}

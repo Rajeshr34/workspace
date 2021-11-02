@@ -1,5 +1,7 @@
-export default class Tem {
-	load() {
-		console.log("hello world");
-	}
+export function add(x: number, y: number): number {
+	return x + y;
+}
+
+export function substract(x: number, y: number): number {
+	return x - y;
 }

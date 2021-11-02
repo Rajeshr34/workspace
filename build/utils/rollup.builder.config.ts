@@ -11,10 +11,11 @@ import json from "@rollup/plugin-json";
 import typescript from "@rollup/plugin-typescript";
 import { safePackageName, safeVariableName } from "./build.helpers";
 import replace from "@rollup/plugin-replace";
-import { rollupBabelBuilder } from "../rollupBabelBuilder";
+import { rollupBabelPlugins } from "../rollupBabelBuilder";
 import { DEFAULT_EXTENSIONS as DEFAULT_BABEL_EXTENSIONS } from "@babel/core";
 import sourceMaps from "rollup-plugin-sourcemaps";
 import { terser } from "rollup-plugin-terser";
+import { createBabelInputPluginFactory } from "@rollup/plugin-babel";
 
 export default class RollupBuilderConfig {
 	readonly applicationPath: string;
@@ -29,11 +30,11 @@ export default class RollupBuilderConfig {
 	}
 
 	load() {
-		this.nodeArgs.load().setDefaults({
-			format: "cjs",
-			env: "production",
-			target: "browser",
-		});
+		/*this.nodeArgs.load().setDefaults({
+	  format: "cjs",
+	  env: "production",
+	  target: "browser",
+	});*/
 	}
 
 	getDist() {
@@ -82,7 +83,7 @@ export default class RollupBuilderConfig {
 
 		const tsCompilerOptions = this.getTsConfigData().config;
 
-		console.log(outputName, tsCompilerOptions, options);
+		const babelPluginForESMBundle = createBabelInputPluginFactory();
 
 		return <RollupOptions>{
 			input: options.input,
@@ -135,41 +136,34 @@ export default class RollupBuilderConfig {
 				typescript({
 					typescript: ts,
 					tsconfig: this.getTsConfigPath(),
-					tsconfigDefaults: {
-						exclude: [
-							// all TS test files, regardless whether co-located or in test/ etc
-							"**/*.spec.ts",
-							"**/*.test.ts",
-							"**/*.spec.tsx",
-							"**/*.test.tsx",
-							// TS defaults below
-							"node_modules",
-							"bower_components",
-							"jspm_packages",
-							this.getDist(),
-						],
-						compilerOptions: {
-							sourceMap: true,
-							declaration: true,
-							jsx: "react",
-						},
-					},
-					tsconfigOverride: {
-						compilerOptions: {
-							// TS -> esnext, then leave the rest to babel-preset-env
-							target: "esnext",
-						},
-					},
-					check: true,
-					useTsconfigDeclarationDir: Boolean(tsCompilerOptions?.declarationDir),
+					exclude: [
+						// all TS test files, regardless whether co-located or in test/ etc
+						"**/*.spec.ts",
+						"**/*.test.ts",
+						"**/*.spec.tsx",
+						"**/*.test.tsx",
+						// TS defaults below
+						"node_modules",
+						"bower_components",
+						"jspm_packages",
+						this.getDist(),
+					],
 				}),
-				rollupBabelBuilder({
+				babelPluginForESMBundle({
+					presets: [["@babel/preset-env", { modules: false, loose: true, targets: opts.target }]],
+					env: {
+						test: {
+							presets: [["@babel/preset-env"]],
+						},
+					},
 					exclude: "node_modules/**",
 					extensions: [...DEFAULT_BABEL_EXTENSIONS, "ts", "tsx"],
 					babelHelpers: "bundled",
+					plugins: rollupBabelPlugins(opts),
 				}),
 				opts.env !== undefined &&
 					replace({
+						preventAssignment: true,
 						"process.env.NODE_ENV": JSON.stringify(opts.env),
 					}),
 				sourceMaps(),

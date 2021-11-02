@@ -4,4 +4,3 @@ const rollUpBuilder = new RollupBuilder(process.cwd(), process.argv);
 rollUpBuilder.load({
 	input: ["./src/index.ts"],
 });
-console.log(rollUpBuilder);
