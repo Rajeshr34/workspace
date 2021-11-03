@@ -81,7 +81,7 @@ export default class RollupBuilderConfig {
 			.filter(Boolean)
 			.join(".");
 
-		const tsCompilerOptions = this.getTsConfigData().config;
+		const tsCompilerOptions = this.getTsConfigData().config.compilerOptions;
 
 		const babelPluginForESMBundle = createBabelInputPluginFactory();
 
@@ -118,7 +118,7 @@ export default class RollupBuilderConfig {
 				// Respect tsconfig esModuleInterop when setting __esModule.
 				esModule: Boolean(tsCompilerOptions?.esModuleInterop),
 				name: this.applicationInfo.name || safeVariableName(this.applicationInfo.name),
-				sourcemap: opts.sorucemap,
+				sourcemap: tsCompilerOptions?.sourceMap,
 				exports: "named",
 			},
 			plugins: [
