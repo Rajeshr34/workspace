@@ -8,7 +8,7 @@ import { RollupOptions } from "rollup";
 import resolve, { DEFAULTS as RESOLVE_DEFAULTS } from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
-import typescript from "@rollup/plugin-typescript";
+import * as rollTs from "rollup-plugin-ts";
 import { safePackageName, safeVariableName } from "./build.helpers";
 import replace from "@rollup/plugin-replace";
 import { rollupBabelPlugins } from "../rollupBabelBuilder";
@@ -16,6 +16,9 @@ import { DEFAULT_EXTENSIONS as DEFAULT_BABEL_EXTENSIONS } from "@babel/core";
 import sourceMaps from "rollup-plugin-sourcemaps";
 import { terser } from "rollup-plugin-terser";
 import { createBabelInputPluginFactory } from "@rollup/plugin-babel";
+import _ from "lodash";
+// @ts-ignore
+import { folderInput } from "rollup-plugin-folder-input";
 
 export default class RollupBuilderConfig {
 	readonly applicationPath: string;
@@ -66,7 +69,7 @@ export default class RollupBuilderConfig {
 	}
 
 	getTsConfigData() {
-		return ts.readConfigFile(this.getFilePath("tsconfig.json"), ts.sys.readFile);
+		return RollupBuilderConfig.getCompilerOptionsJSONFollowExtends(this.getFilePath("tsconfig.json"));
 	}
 
 	getConfig(options: RollupOptions) {
@@ -81,7 +84,9 @@ export default class RollupBuilderConfig {
 			.filter(Boolean)
 			.join(".");
 
-		const tsCompilerOptions = this.getTsConfigData().config.compilerOptions;
+		const outputDir = `${this.getDist()}/${opts.env}-${this.applicationInfo.version}`;
+
+		const tsCompilerOptions = this.getTsConfigData();
 
 		const babelPluginForESMBundle = createBabelInputPluginFactory();
 
@@ -109,19 +114,21 @@ export default class RollupBuilderConfig {
 			},
 			output: {
 				// Set filenames of the consumer's package
-				file: outputName,
+				dir: outputDir,
 				// Pass through the file format
 				format: opts.format,
 				// Do not let Rollup call Object.freeze() on namespace import objects
 				// (i.e. import * as namespaceImportObject from...) that are accessed dynamically.
 				freeze: false,
 				// Respect tsconfig esModuleInterop when setting __esModule.
-				esModule: Boolean(tsCompilerOptions?.esModuleInterop),
+				esModule: Boolean(tsCompilerOptions?.compilerOptions?.esModuleInterop),
 				name: this.applicationInfo.name || safeVariableName(this.applicationInfo.name),
-				sourcemap: tsCompilerOptions?.sourceMap,
+				sourcemap: tsCompilerOptions?.compilerOptions?.sourceMap,
 				exports: "named",
+				preserveModules: true,
 			},
 			plugins: [
+				folderInput(),
 				resolve({
 					mainFields: ["module", "main", opts.target !== "node" ? "browser" : undefined].filter(
 						Boolean
@@ -133,25 +140,12 @@ export default class RollupBuilderConfig {
 					include: opts.format === "umd" ? /\/node_modules\// : /\/regenerator-runtime\//,
 				}),
 				json(),
-				typescript({
-					typescript: ts,
-					tsconfig: this.getTsConfigPath(),
-					exclude: [
-						// all TS test files, regardless whether co-located or in test/ etc
-						"**/*.spec.ts",
-						"**/*.test.ts",
-						"**/*.spec.tsx",
-						"**/*.test.tsx",
-						// TS defaults below
-						"node_modules",
-						"bower_components",
-						"jspm_packages",
-						this.getDist(),
-					],
+				rollTs.default({
+					...tsCompilerOptions?.compilerOptions,
 				}),
 				babelPluginForESMBundle({
 					presets: [["@babel/preset-env"]],
-					exclude: "node_modules/**",
+					exclude: "node_modules/!**",
 					extensions: [...DEFAULT_BABEL_EXTENSIONS, "ts", "tsx"],
 					babelHelpers: "bundled",
 					// plugins: rollupBabelPlugins(opts),
@@ -175,5 +169,16 @@ export default class RollupBuilderConfig {
 					}),
 			],
 		};
+	}
+
+	static getCompilerOptionsJSONFollowExtends(filename: string): { [key: string]: any } {
+		let compopts = {};
+		const config = ts.readConfigFile(filename, ts.sys.readFile).config;
+		if (config.extends) {
+			const rqrpath = require.resolve(config.extends);
+			compopts = this.getCompilerOptionsJSONFollowExtends(rqrpath);
+			delete config.extends;
+		}
+		return _.merge(compopts, config);
 	}
 }

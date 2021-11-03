@@ -11,17 +11,17 @@ export default class RollupBuilder {
 		this.configService = new RollupBuilderConfig(applicationPath, new NodeArgs(argv));
 	}
 
-	load(options: RollupOptions) {
+	async load(options: RollupOptions) {
 		new EslintBuilder(this.configService.applicationPath, this.configService.nodeArgs).load();
 		const configObject = this.configService.getConfig(options);
-		this.build(configObject).then();
+		await this.build(configObject);
 	}
 
 	async build(configObject: RollupOptions) {
 		await this.cleanDistFolder();
 		// create a bundle
 		const bundle = await rollup(configObject);
-		// const {output} = await bundle.generate(<OutputOptions>configObject.output);
+		const { output } = await bundle.generate(<OutputOptions>configObject.output);
 		// or write the bundle to disk
 		const writeData = await bundle.write(<OutputOptions>configObject.output);
 		console.log(writeData);
