@@ -11,7 +11,6 @@ import json from "@rollup/plugin-json";
 import * as rollTs from "rollup-plugin-ts";
 import { safePackageName, safeVariableName } from "./build.helpers";
 import replace from "@rollup/plugin-replace";
-import { rollupBabelPlugins } from "../rollupBabelBuilder";
 import { DEFAULT_EXTENSIONS as DEFAULT_BABEL_EXTENSIONS } from "@babel/core";
 import sourceMaps from "rollup-plugin-sourcemaps";
 import { terser } from "rollup-plugin-terser";
@@ -19,17 +18,38 @@ import { createBabelInputPluginFactory } from "@rollup/plugin-babel";
 import _ from "lodash";
 // @ts-ignore
 import { folderInput } from "rollup-plugin-folder-input";
+import createLogger, { ProgressEstimator } from "progress-estimator";
+import progress from "rollup-plugin-progress";
 
 export default class RollupBuilderConfig {
 	readonly applicationPath: string;
 	public readonly nodeArgs: NodeArgs<RollupArgsInterface>;
 	private readonly applicationInfo: ApplicationPackageInterface;
+	private logger!: ProgressEstimator;
 
 	constructor(applicationPath: string, rollupBuilderConfig: NodeArgs<RollupArgsInterface>) {
 		this.applicationPath = applicationPath;
 		this.nodeArgs = rollupBuilderConfig;
 		this.applicationInfo = this.getPackageInfo();
 		this.load();
+	}
+
+	static getCompilerOptionsJSONFollowExtends(filename: string): { [key: string]: any } {
+		let compopts = {};
+		const config = ts.readConfigFile(filename, ts.sys.readFile).config;
+		if (config.extends) {
+			const rqrpath = require.resolve(config.extends);
+			compopts = this.getCompilerOptionsJSONFollowExtends(rqrpath);
+			delete config.extends;
+		}
+		return _.merge(compopts, config);
+	}
+
+	getLogger() {
+		if (!this.logger) {
+			this.logger = createLogger({});
+		}
+		return this.logger;
 	}
 
 	load() {
@@ -60,10 +80,6 @@ export default class RollupBuilderConfig {
 		return JSON.parse(this.readFile(path));
 	}
 
-	private getPackageInfo() {
-		return this.readFileAsJson("package.json");
-	}
-
 	getTsConfigPath() {
 		return this.getFilePath("tsconfig.json");
 	}
@@ -84,7 +100,8 @@ export default class RollupBuilderConfig {
 			.filter(Boolean)
 			.join(".");
 
-		const outputDir = `${this.getDist()}/${opts.env}-${this.applicationInfo.version}`;
+		// const outputDir = `${this.getDist()}/${opts.env}-${this.applicationInfo.version}`;
+		const outputDir = `${this.getDist()}`;
 
 		const tsCompilerOptions = this.getTsConfigData();
 
@@ -123,12 +140,13 @@ export default class RollupBuilderConfig {
 				// Respect tsconfig esModuleInterop when setting __esModule.
 				esModule: Boolean(tsCompilerOptions?.compilerOptions?.esModuleInterop),
 				name: this.applicationInfo.name || safeVariableName(this.applicationInfo.name),
-				sourcemap: tsCompilerOptions?.compilerOptions?.sourceMap,
+				sourcemap: tsCompilerOptions?.compilerOptions?.sourceMap && opts.env != "production",
 				exports: "named",
 				preserveModules: true,
 			},
 			plugins: [
 				folderInput(),
+				progress(),
 				resolve({
 					mainFields: ["module", "main", opts.target !== "node" ? "browser" : undefined].filter(
 						Boolean
@@ -171,14 +189,7 @@ export default class RollupBuilderConfig {
 		};
 	}
 
-	static getCompilerOptionsJSONFollowExtends(filename: string): { [key: string]: any } {
-		let compopts = {};
-		const config = ts.readConfigFile(filename, ts.sys.readFile).config;
-		if (config.extends) {
-			const rqrpath = require.resolve(config.extends);
-			compopts = this.getCompilerOptionsJSONFollowExtends(rqrpath);
-			delete config.extends;
-		}
-		return _.merge(compopts, config);
+	private getPackageInfo() {
+		return this.readFileAsJson("package.json");
 	}
 }

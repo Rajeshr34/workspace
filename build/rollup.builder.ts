@@ -18,13 +18,15 @@ export default class RollupBuilder {
 	}
 
 	async build(configObject: RollupOptions) {
-		await this.cleanDistFolder();
+		await this.configService.getLogger()(this.cleanDistFolder(), "Clearing Dist Folder");
 		// create a bundle
 		const bundle = await rollup(configObject);
 		const { output } = await bundle.generate(<OutputOptions>configObject.output);
 		// or write the bundle to disk
-		const writeData = await bundle.write(<OutputOptions>configObject.output);
-		console.log(writeData);
+		const writeData = await this.configService.getLogger()(
+			bundle.write(<OutputOptions>configObject.output),
+			"Writing Files to dist folder"
+		);
 	}
 
 	async cleanDistFolder() {

@@ -1,5 +1,7 @@
+import * as process from "process";
+
 export default class Loader {
 	constructor() {
-		alert("123");
+		alert(process.env.NODE_ENV);
 	}
 }

@@ -13,14 +13,6 @@ export default class NodeArgs<T> {
 		return this;
 	}
 
-	private splitArg(item: string) {
-		const itemSplit = item.split(":");
-		if (itemSplit[0].startsWith("-")) {
-			itemSplit[0] = itemSplit[0].replace(/^-+/g, "");
-		}
-		this.keyValueArgs[itemSplit[0]] = itemSplit[1] ? itemSplit[1].trim() : true;
-	}
-
 	public getKeyValueArgs() {
 		return <T>this.keyValueArgs;
 	}
@@ -32,5 +24,13 @@ export default class NodeArgs<T> {
 				this.keyValueArgs[item] = param[item];
 			}
 		});
+	}
+
+	private splitArg(item: string) {
+		const itemSplit = item.split(":");
+		if (itemSplit[0].startsWith("-")) {
+			itemSplit[0] = itemSplit[0].replace(/^-+/g, "");
+		}
+		this.keyValueArgs[itemSplit[0]] = itemSplit[1] ? itemSplit[1].trim() : true;
 	}
 }

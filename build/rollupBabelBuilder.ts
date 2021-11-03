@@ -12,11 +12,11 @@ export const rollupBabelPlugins = (customOptions: RollupArgsInterface): PluginIt
 		{ name: "babel-plugin-annotate-pure-calls" },
 		{ name: "babel-plugin-dev-expression" },
 		/*	customOptions.format !== "cjs" && {
-	  name: "babel-plugin-transform-rename-import",
-	  replacements:  [
-		{original: "lodash(?!/fp)", replacement: "lodash-es"}
-	  ],
-	},*/
+  name: "babel-plugin-transform-rename-import",
+  replacements:  [
+	{original: "lodash(?!/fp)", replacement: "lodash-es"}
+  ],
+},*/
 		{
 			name: "babel-plugin-polyfill-regenerator",
 			// don't pollute global env as this is being used in a library
@@ -27,7 +27,7 @@ export const rollupBabelPlugins = (customOptions: RollupArgsInterface): PluginIt
 			loose: true,
 		},
 		/*	isTruthy(customOptions.extractErrors) && {
-		  name: "./errors/transformErrorMessages",
-		},*/
+	  name: "./errors/transformErrorMessages",
+	},*/
 	].filter(Boolean);
 };
