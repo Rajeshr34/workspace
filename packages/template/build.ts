@@ -1,9 +1,9 @@
-import RollupBuilder from "../../build/rollup.builder";
+import * as rb from "rollup-builder";
 
-const rollUpBuilder = new RollupBuilder(process.cwd(), process.argv);
+const rollUpBuilder = new rb.RollupBuilder(process.cwd(), process.argv);
 rollUpBuilder
 	.load({
-		input: ["./src/**/*.ts"],
+		input: ["./src/!**!/!*.ts"],
 	})
 	.then(() => {
 		// build completed
